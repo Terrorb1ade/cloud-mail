@@ -1,0 +1,30 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    # 每天定于国际标准时间 0:00 (北京时间 8:00) 自动执行
+    # 你可以根据 cron 表达式修改时间
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许你在 GitHub 页面上手动触发触发
+
+jobs:
+  sync_latest_from_upstream:
+    runs-on: ubuntu-latest
+    name: Sync latest commits from upstream repo
+
+    steps:
+    # 1. 检出当前仓库
+    - name: Checkout target repo
+      uses: actions/checkout@v4
+
+    # 2. 运行同步 Action
+    - name: Sync upstream changes
+      uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+      with:
+        target_sync_branch: main      # 你 fork 仓库中需要同步的分支（如 main 或 master）
+        target_repo_token: ${{ secrets.GITHUB_TOKEN }} # 自动生成的 Token，无需手动配置
+        upstream_sync_branch: main    # upstream 原仓库对应的分支
+        upstream_sync_repo: owner/repo # 【重要】替换为原仓库的 拥有者/仓库名 (例如: twbs/bootstrap)
+        
+        # 如果遇到冲突，保留你本地的修改（也可以设为 false 强制覆盖）
+        test_mode: false
