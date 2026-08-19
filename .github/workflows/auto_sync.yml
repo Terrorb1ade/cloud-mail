@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  workflows: write   # 授予修改上游 workflow 文件的权限
 
 jobs:
   sync_latest_from_upstream:
@@ -30,7 +31,6 @@ jobs:
         git fetch upstream main
 
         git checkout main
-        # 遇到冲突时全部以上游(theirs)为主自动解决
         git merge upstream/main --allow-unrelated-histories -X theirs -m "chore: sync upstream changes"
 
         git push origin main
