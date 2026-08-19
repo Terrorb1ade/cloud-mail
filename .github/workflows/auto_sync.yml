@@ -5,6 +5,9 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write  # 显式声明写入代码与 Tags 的权限
+
 jobs:
   sync_latest_from_upstream:
     runs-on: ubuntu-latest
@@ -14,20 +17,22 @@ jobs:
     - name: Checkout target repo
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # 获取完整历史以确保 Tag 能正确关联
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Sync upstream changes
-      uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
-      with:
-        target_sync_branch: main
-        target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-        upstream_sync_branch: main
-        upstream_sync_repo: maillab/cloud-mail
-        test_mode: false
-
-    # 新增步骤：自动拉取并推送 Upstream 的 Tags
-    - name: Sync Upstream Tags
+    - name: Sync upstream branch and tags
       run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # 添加上游仓库并拉取所有分支及标签
         git remote add upstream https://github.com/maillab/cloud-mail.git || true
         git fetch upstream --tags
+
+        # 合并上游 main 分支并推送代码
+        git checkout main
+        git merge upstream/main --ff-only || git merge upstream/main -m "Merge upstream changes"
+        git push origin main
+
+        # 推送同步过来的 Tags
         git push origin --tags
