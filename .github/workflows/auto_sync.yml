@@ -25,15 +25,13 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        # 添加上游源并拉取
         git remote add upstream https://github.com/maillab/cloud-mail.git || true
         git fetch upstream --tags
         git fetch upstream main
 
-        # 允许合并独立历史并生成 merge commit
         git checkout main
-        git merge upstream/main --allow-unrelated-histories -m "chore: sync upstream changes"
+        # 遇到冲突时全部以上游(theirs)为主自动解决
+        git merge upstream/main --allow-unrelated-histories -X theirs -m "chore: sync upstream changes"
 
-        # 推送分支代码与 Tags
         git push origin main
         git push origin --tags
